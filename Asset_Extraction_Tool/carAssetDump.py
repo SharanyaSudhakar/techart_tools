@@ -183,7 +183,7 @@ class CarAssetDump:
             print(msg)
             return {}
 
-        materialXML = forza.metadata.ForzaXML(dotmaterial).root
+        materialXML = dotmaterial.root
         shaderParamDict = {}
         shaderParams = materialXML.findall('ShaderP')
 
@@ -330,7 +330,7 @@ class CarAssetDump:
         :param bool onlyJSON: if this is true, only the dictionary is created without the assets (fbxes, .tifs) being extracted
         """
         #.car dump
-        carXML = forza.metadata.ForzaXML(self.carPath).root
+        carXML = self.carPath.root
 
         name = carXML.find('Description').text
         print(f'---LOG---: data dump for car {name}')
@@ -367,15 +367,6 @@ class CarAssetDump:
                     continue
                 print('maxpath', maxpath, subcar)
                 finalMaxPath = self.outFbxPath / Path(maxpath).with_suffix('.fbx').name
-                self.data[subcarName][sname]['Model'] = {}
-                self.data[subcarName][sname]['Model']['path'] = str(maxpath) if onlyJSON else str(finalMaxPath)
-                self.data[subcarName][sname]['Model']['Materials'] = self.getModelDataDict(maxpath, onlyJSON)
-
-                transform = instance.find('Transform').attrib['value']
-                self.data[subcarName][sname]['Transform'] = transform
-
-                attribs = instance.find('Attributes')
-                self.data[subcarName][sname][attribs.tag] = attribs.attrib
 
                 aopath = instance.find('AOMap').attrib['DefaultPath']
                 if '\\' in aopath:
@@ -386,11 +377,6 @@ class CarAssetDump:
                 paintgrp = instance.find('paint')
                 paintgrptags = [tag.attrib for tag in paintgrp]
                 self.data[subcarName][sname]['paint'] = paintgrptags
-
-                damagegrp = instance.find('DamageGroup')
-                if damagegrp:
-                    damagegrptags = [tag.attrib for tag in damagegrp]
-                    self.data[subcarName][sname]['DamageGroup'] = damagegrptags
 
                 assembly = instance.find('Assembly').attrib['value']
                 self.data[subcarName][sname]['Assembly'] = assembly
@@ -443,7 +429,6 @@ class CarAssetDump:
             subcarPath = dotSubcarsPath / subcar
             xmlObj = forza.metadata.ForzaXML(subcarPath)
             for instanceElem in xmlObj.root.findall('./i/Instance'):
-                    modelElem = instanceElem.find('Model')
                     maxPath = c.MEDIA_CARS / modelElem.attrib.get('value')[5:]
                     if(maxPath.exists() and maxPath.suffix == '.max'):
                         maxFiles.append(str(maxPath))
